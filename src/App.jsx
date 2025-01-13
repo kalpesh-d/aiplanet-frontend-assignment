@@ -1,10 +1,14 @@
+import Header from "./components/Header";
+import DropArea from "./components/DropArea";
 function App() {
   return (
     <>
-      <div className="text-3xl font-bold underline">Hello world</div>
-      <img src="/openagi.svg" alt="Ai Planet" />
+      <Header />
+      <main>
+        <DropArea />
+      </main>
     </>
-  )
+  );
 }
 
 export default App
