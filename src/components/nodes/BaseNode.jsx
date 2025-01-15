@@ -12,6 +12,21 @@ const BaseNode = ({
   color,
   handles = { source: true, target: true }
 }) => {
+  const getHandleLabels = () => {
+    switch (color) {
+      case 'blue':
+        return { source: 'LLM Engine', target: '' };
+      case 'purple':
+        return { source: 'Output', target: 'Input' };
+      case 'green':
+        return { source: '', target: 'LLM Engine' };
+      default:
+        return { source: 'Output', target: 'Input' };
+    }
+  };
+
+  const handleLabels = getHandleLabels();
+
   // Memoize status color calculation
   const getStatusColor = () => {
     if (error) return "bg-red-500 text-red-500 hover:bg-red-600 hover:text-red-600";
@@ -47,9 +62,9 @@ const BaseNode = ({
       <div>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 bg-${color}-50 rounded-lg`}>
-              <Icon size={24} className={`text-${color}-500`} aria-hidden="true" />
+          <div className="flex items-center gap-1">
+            <div className={`p-2 rounded-lg`}>
+              <Icon size={24} aria-hidden="true" />
             </div>
             <h3 className="text-base font-semibold text-slate-800">{title}</h3>
           </div>
@@ -79,27 +94,27 @@ const BaseNode = ({
       {/* Handles */}
       {handles.target && (
         <div className="absolute bottom-5 left-0 px-6">
-          <div className={`${handleContainerStyles} bg-${color}-50`}>
+          <div className={`${handleContainerStyles}`}>
             <Handle
               type="target"
               position={Position.Left}
               className={`!left-0 !border-${color}-500 ${handleStyles}`}
             />
           </div>
-          <p className="text-slate-500 text-xs mt-1 text-center relative bottom-3">Input</p>
+          <p className="text-slate-500 text-xs mt-1 text-center relative bottom-3">{handleLabels.target}</p>
         </div>
       )}
 
       {handles.source && (
         <div className="absolute bottom-5 right-0 px-6">
-          <div className={`${handleContainerStyles} bg-${color}-50`}>
+          <div className={`${handleContainerStyles}`}>
             <Handle
               type="source"
               position={Position.Right}
               className={`!right-0 !border-${color}-500 ${handleStyles}`}
             />
           </div>
-          <p className="text-slate-500 text-xs mt-1 text-center relative bottom-3">Output</p>
+          <p className="text-slate-500 text-xs mt-1 text-center relative bottom-3">{handleLabels.source}</p>
         </div>
       )}
     </div>
