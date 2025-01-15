@@ -1,39 +1,63 @@
 import { FileInput, Cpu, FileOutput, Menu } from "lucide-react";
+import { useDragDrop } from '../context/DragDropContext'
+
+const nodes = [
+  {
+    type: "input",
+    icon: FileInput,
+  },
+  {
+    type: "llm",
+    icon: Cpu,
+  },
+  {
+    type: "output",
+    icon: FileOutput,
+  }
+];
 
 const SidePanel = () => {
-  const nodes = [
-    {
-      name: "File Input",
-      icon: <FileInput size={16} />,
-    },
-    {
-      name: "LLM Engine",
-      icon: <Cpu size={16} />,
-    },
-    {
-      name: "File Output",
-      icon: <FileOutput size={16} />,
-    },
-  ];
+  const { isDragging, setIsDragging } = useDragDrop();
+
+  const handleDragStart = (e, type) => {
+    setIsDragging(true);
+    e.dataTransfer.setData("nodeType", type);
+  };
+
+  const handleDragEnd = () => setIsDragging(false);
 
   return (
-    <section className="my-4 container mx-auto">
-      <div className="h-[calc(100vh-8rem)] w-60 bg-white border-2 rounded-[1rem] p-4 space-y-3">
-        <h2 className="text-lg">Components</h2>
-        <div className="border-b-2 border-slate-800/10"></div>
-        <p className="text-sm text-zinc-400">Drag and Drop</p>
+    <section className="absolute top-[calc(5.5rem+1rem)] left-8">
+      <div className="h-[calc(100vh-8rem)] w-64 bg-white border border-slate-200 rounded-xl p-4 space-y-4">
+        <div className="space-y-1.5">
+          <h2 className="text-base font-medium text-slate-800">Components</h2>
+          <p className="text-xs text-slate-500">Drag and drop components to the canvas</p>
+        </div>
 
-        {nodes.map((node) => (
-          <div className="flex justify-between items-center border border-slate-800/20 rounded-md p-2">
-            <div className="flex items-center space-x-2">
-              {node.icon}
-              <p className="text-sm">{node.name}</p>
+        <div className="space-y-3">
+          {nodes.map((node) => (
+            <div
+              key={node.type}
+              draggable
+              onDragStart={(e) => handleDragStart(e, node.type)}
+              onDragEnd={handleDragEnd}
+              className={`
+                flex justify-between items-center gap-3 p-3 rounded-lg cursor-move select-none
+                bg-white border border-slate-200 hover:border-green-300 hover:shadow-sm
+                transition-all duration-200
+                ${isDragging ? "opacity-50" : ""}
+              `}
+            >
+              <div className={`rounded-lg flex gap-2 items-center`}>
+                <node.icon size={16} />
+                <p className="text-sm font-medium text-slate-700">{node.type}</p>
+              </div>
+              <Menu size={16} />
             </div>
-            <Menu size={16} />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </section >
+    </section>
   );
 };
 
