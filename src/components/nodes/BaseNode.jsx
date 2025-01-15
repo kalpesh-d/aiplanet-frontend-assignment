@@ -1,5 +1,7 @@
 import { Circle } from "lucide-react";
 import { Handle, Position } from "@xyflow/react";
+import PropTypes from 'prop-types';
+import { nodeStyles } from '../../styles/nodeStyles';
 
 const BaseNode = ({
   icon: Icon,
@@ -9,50 +11,39 @@ const BaseNode = ({
   children,
   error,
   isSuccess,
-  color,
-  handles = { source: true, target: true }
+  color = 'default',
+  handles = { source: true, target: true },
+  onStatusChange
 }) => {
-  const getHandleLabels = () => {
-    switch (color) {
-      case 'blue':
-        return { source: 'LLM Engine', target: '' };
-      case 'purple':
-        return { source: 'Output', target: 'Input' };
-      case 'green':
-        return { source: '', target: 'LLM Engine' };
-      default:
-        return { source: 'Output', target: 'Input' };
-    }
-  };
+  const handleLabels = nodeStyles.HANDLE_LABELS[color] || nodeStyles.HANDLE_LABELS.default;
 
-  const handleLabels = getHandleLabels();
+  const statusColor = error
+    ? nodeStyles.STATUS_COLORS.error
+    : isSuccess
+      ? nodeStyles.STATUS_COLORS.success
+      : nodeStyles.STATUS_COLORS.neutral;
 
-  // Memoize status color calculation
-  const getStatusColor = () => {
-    if (error) return "bg-red-500 text-red-500 hover:bg-red-600 hover:text-red-600";
-    if (isSuccess) return "bg-green-500 text-green-500 hover:bg-green-600 hover:text-green-600";
-    return "bg-slate-400 text-slate-400 hover:bg-slate-500 hover:text-slate-500";
-  };
+  const borderColor = error
+    ? 'border-red-400'
+    : selected
+      ? `border-${color}-500 shadow-${color}-100`
+      : 'border-slate-200';
 
-  // Extract reusable styles
-  const handleStyles = `w-3 h-3 border-2 border-white hover:w-4 hover:h-4 transition-all duration-200`;
-  const handleContainerStyles = `w-5 h-5 rounded-full flex items-center justify-center`;
+  const descriptionColor =
+    color === 'blue' ? 'bg-blue-50' :
+      color === 'purple' ? 'bg-purple-50' :
+        color === 'green' ? 'bg-green-50' : 'bg-slate-50';
 
   return (
     <div
-      className={`
-        relative
-        bg-white border-2 rounded-xl shadow-lg select-none w-80 min-h-80
-        transition-all duration-200 ease-in-out
-        hover:shadow-xl
-        ${error ? 'border-red-400' : selected ? `border-${color}-500 shadow-${color}-100` : 'border-slate-200'}
-      `}
+      className={`${nodeStyles.CONTAINER} ${borderColor}`}
       role="region"
       aria-label={title}
+      data-testid={`node-${title.toLowerCase()}`}
     >
       {error && (
         <div
-          className="absolute -top-10 right-0 bg-red-500 text-white px-4 py-2 rounded-lg text-sm shadow-lg animate-in fade-in slide-in-from-top-4"
+          className={nodeStyles.ERROR_MESSAGE}
           role="alert"
         >
           {error}
@@ -60,65 +51,76 @@ const BaseNode = ({
       )}
 
       <div>
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+        <div className={nodeStyles.HEADER}>
           <div className="flex items-center gap-1">
-            <div className={`p-2 rounded-lg`}>
+            <div className="p-2 rounded-lg">
               <Icon size={24} aria-hidden="true" />
             </div>
             <h3 className="text-base font-semibold text-slate-800">{title}</h3>
           </div>
           <Circle
             size={16}
-            className={`rounded-full cursor-pointer transition-all duration-200 ${getStatusColor()}`}
+            className={`rounded-full cursor-pointer transition-all duration-200 ${statusColor}`}
             role="status"
             aria-label={error ? "Error" : isSuccess ? "Success" : "Neutral"}
+            onClick={() => onStatusChange?.()}
           />
         </div>
 
-        {/* Description */}
-        <div className={`${color === 'blue' ? 'bg-blue-50' :
-          color === 'purple' ? 'bg-purple-50' :
-            color === 'green' ? 'bg-green-50' :
-              'bg-slate-50'
-          } px-6 py-4`}>
+        <div className={`${nodeStyles.DESCRIPTION} ${descriptionColor}`}>
           <p className="text-slate-600 text-sm">{description}</p>
         </div>
 
-        {/* Content */}
-        <div className="pt-6 px-6 pb-20">
+        <div className={nodeStyles.CONTENT}>
           {children}
         </div>
       </div>
 
-      {/* Handles */}
       {handles.target && (
-        <div className="absolute bottom-5 left-0 px-6">
-          <div className={`${handleContainerStyles}`}>
+        <div className={nodeStyles.HANDLE_LEFT}>
+          <div className={nodeStyles.HANDLE_CONTAINER}>
             <Handle
               type="target"
               position={Position.Left}
-              className={`!left-0 !border-${color}-500 ${handleStyles}`}
+              className={`!left-0 !border-${color}-500 ${nodeStyles.HANDLE}`}
+              data-testid="target-handle"
             />
           </div>
-          <p className="text-slate-500 text-xs mt-1 text-center relative bottom-3">{handleLabels.target}</p>
+          <p className={nodeStyles.HANDLE_LABEL}>{handleLabels.target}</p>
         </div>
       )}
 
       {handles.source && (
-        <div className="absolute bottom-5 right-0 px-6">
-          <div className={`${handleContainerStyles}`}>
+        <div className={nodeStyles.HANDLE_RIGHT}>
+          <div className={nodeStyles.HANDLE_CONTAINER}>
             <Handle
               type="source"
               position={Position.Right}
-              className={`!right-0 !border-${color}-500 ${handleStyles}`}
+              className={`!right-0 !border-${color}-500 ${nodeStyles.HANDLE}`}
+              data-testid="source-handle"
             />
           </div>
-          <p className="text-slate-500 text-xs mt-1 text-center relative bottom-3">{handleLabels.source}</p>
+          <p className={nodeStyles.HANDLE_LABEL}>{handleLabels.source}</p>
         </div>
       )}
     </div>
   );
+};
+
+BaseNode.propTypes = {
+  icon: PropTypes.elementType.isRequired,
+  title: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
+  selected: PropTypes.bool,
+  children: PropTypes.node,
+  error: PropTypes.string,
+  isSuccess: PropTypes.bool,
+  color: PropTypes.oneOf(['blue', 'purple', 'green', 'default']),
+  handles: PropTypes.shape({
+    source: PropTypes.bool,
+    target: PropTypes.bool
+  }),
+  onStatusChange: PropTypes.func
 };
 
 export default BaseNode;

@@ -1,25 +1,24 @@
 import { Cpu } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import BaseNode from "./BaseNode";
+import { useLLMConfig } from "../../hooks/useLLMConfig";
 
 const LLMNode = ({ data, selected }) => {
-  const [error, setError] = useState(null);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const {
+    config,
+    error,
+    isSuccess,
+    handleConfigChange,
+    validateConfig
+  } = useLLMConfig(data.config);
+
   const [showApiKey, setShowApiKey] = useState(false);
 
-  const handleValidation = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    if (!value.trim()) {
-      setError(`${name} is required`);
-      setIsSuccess(false);
-    } else if (name === 'baseurl' && !value.startsWith('http')) {
-      setError('Invalid API URL format');
-      setIsSuccess(false);
-    } else {
-      setError(null);
-      setIsSuccess(true);
-    }
-  };
+    handleConfigChange(name, value);
+    validateConfig(name, value);
+  }, [handleConfigChange, validateConfig]);
 
   return (
     <BaseNode
@@ -30,15 +29,20 @@ const LLMNode = ({ data, selected }) => {
       error={error}
       isSuccess={isSuccess}
       color="purple"
+      data-testid="llm-node"
     >
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="font-medium text-sm text-slate-800">Model</label>
+          <label className="font-medium text-sm text-slate-800" htmlFor="model">
+            Model
+          </label>
           <select
-            value={data.config.model}
-            onChange={handleValidation}
+            id="model"
+            value={config.model}
+            onChange={handleInputChange}
             name="model"
             className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 bg-white"
+            data-testid="model-select"
           >
             <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
             <option value="gpt-4">GPT-4</option>
@@ -46,51 +50,57 @@ const LLMNode = ({ data, selected }) => {
         </div>
 
         <div className="space-y-2">
-          <label className="font-medium text-sm text-slate-800">OpenAI API Base</label>
+          <label className="font-medium text-sm text-slate-800" htmlFor="baseurl">
+            OpenAI API Base
+          </label>
           <input
+            id="baseurl"
             type="url"
             name="baseurl"
-            value={data.config.baseurl}
-            onChange={handleValidation}
+            value={config.baseurl}
+            onChange={handleInputChange}
             placeholder="https://api.openai.com/v1/chat/completions"
             className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
+            data-testid="baseurl-input"
           />
         </div>
 
         <div className="space-y-2">
-          <label className="font-medium text-sm text-slate-800">API Key</label>
+          <label className="font-medium text-sm text-slate-800" htmlFor="apikey">
+            API Key
+          </label>
           <div className="relative">
             <input
+              id="apikey"
               type={showApiKey ? "text" : "password"}
               name="apikey"
-              value={data.config.apikey}
-              onChange={handleValidation}
+              value={config.apikey}
+              onChange={handleInputChange}
               placeholder="sk-..."
-              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400 pr-24"
+              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
+              data-testid="apikey-input"
             />
-            <button
-              onClick={() => setShowApiKey(!showApiKey)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-medium text-purple-600 hover:text-purple-700"
-            >
-              {showApiKey ? 'HIDE' : 'SHOW'}
-            </button>
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="font-medium text-sm text-slate-800">Temperature</label>
-            <span className="text-sm text-slate-500">{data.config.temperature}</span>
+            <label className="font-medium text-sm text-slate-800" htmlFor="temperature">
+              Temperature
+            </label>
+            <span className="text-sm text-slate-500">{config.temperature}</span>
           </div>
           <input
+            id="temperature"
             type="range"
             min="0"
             max="1"
             step="0.1"
             name="temperature"
-            value={data.config.temperature}
-            onChange={handleValidation}
+            value={config.temperature}
+            onChange={handleInputChange}
             className="w-full accent-purple-500"
+            data-testid="temperature-slider"
           />
           <div className="flex justify-between text-xs text-slate-500">
             <span>Precise</span>
@@ -101,18 +111,22 @@ const LLMNode = ({ data, selected }) => {
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="font-medium text-sm text-slate-800">Max Tokens</label>
-            <span className="text-sm text-slate-500">{data.config.maxTokens}</span>
+            <label className="font-medium text-sm text-slate-800" htmlFor="maxTokens">
+              Max Tokens
+            </label>
+            <span className="text-sm text-slate-500">{config.maxTokens}</span>
           </div>
           <input
+            id="maxTokens"
             type="range"
             min="1"
             max="4000"
             step="1"
             name="maxTokens"
-            value={data.config.maxTokens}
-            onChange={handleValidation}
+            value={config.maxTokens}
+            onChange={handleInputChange}
             className="w-full accent-purple-500"
+            data-testid="max-tokens-slider"
           />
           <div className="flex justify-between text-xs text-slate-500">
             <span>Short</span>

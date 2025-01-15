@@ -1,121 +1,82 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from 'react';
+import PropTypes from 'prop-types';
+import { useNodeOperations } from '../hooks/useNodeOperations';
+import { useWorkflowValidation } from '../hooks/useWorkflowValidation';
+import { NODE_TYPES } from '../constants/nodeTypes';
 
-export const DragDropContext = createContext();
+const initialState = {
+  nodes: [],
+  edges: [],
+  selectedNode: null,
+  isDragging: false,
+  draggedNode: null,
+  dragOffset: { x: 0, y: 0 }
+};
+
+export const DragDropContext = createContext(null);
 
 export const useDragDrop = () => {
-  return useContext(DragDropContext);
+  const context = useContext(DragDropContext);
+  if (!context) {
+    throw new Error('useDragDrop must be used within a DragDropProvider');
+  }
+  return context;
 };
 
 export const DragDropProvider = ({ children }) => {
-  const [nodes, setNodes] = useState([]);
-  const [edges, setEdges] = useState([]);
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [draggedNode, setDraggedNode] = useState(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  // State
+  const [nodes, setNodes] = useState(initialState.nodes);
+  const [edges, setEdges] = useState(initialState.edges);
+  const [selectedNode, setSelectedNode] = useState(initialState.selectedNode);
+  const [isDragging, setIsDragging] = useState(initialState.isDragging);
+  const [draggedNode, setDraggedNode] = useState(initialState.draggedNode);
+  const [dragOffset, setDragOffset] = useState(initialState.dragOffset);
 
-  // Node type constants
-  const NODE_TYPES = {
-    INPUT: 'input',
-    LLM: 'llm',
-    OUTPUT: 'output'
-  };
+  // Custom hooks
+  const {
+    addNode,
+    updateNodeConfig,
+    removeNode,
+    addEdge,
+    removeEdge
+  } = useNodeOperations(setNodes, setEdges);
 
-  const addNode = (type, position) => {
-    if (!Object.values(NODE_TYPES).includes(type)) {
-      throw new Error('Invalid node type');
-    }
+  const {
+    validateConnection,
+    validateWorkflow,
+    WorkflowError
+  } = useWorkflowValidation(nodes);
 
-    const newNode = {
-      id: `${type}-${Date.now()}`,
-      type,
-      position,
-      data: {
-        label: type.toUpperCase(),
-        // Default configuration based on node type
-        config: type === NODE_TYPES.LLM ? {
-          model: 'gpt-3.5-turbo',
-          temperature: 0.7,
-          maxTokens: 256
-        } : {}
-      }
-    };
-
-    setNodes(prev => [...prev, newNode]);
-    return newNode.id;
-  };
-
-  const updateNodeConfig = (nodeId, config) => {
-    setNodes(prev => prev.map(node =>
-      node.id === nodeId
-        ? { ...node, data: { ...node.data, config: { ...node.data.config, ...config } } }
-        : node
-    ));
-  };
-
-  const validateConnection = (source, target) => {
-    const sourceNode = nodes.find(n => n.id === source);
-    const targetNode = nodes.find(n => n.id === target);
-
-    if (!sourceNode || !targetNode) return false;
-
-    // Enforce workflow rules
-    // Input -> LLM -> Output
-    const validConnections = {
-      [NODE_TYPES.INPUT]: [NODE_TYPES.LLM],
-      [NODE_TYPES.LLM]: [NODE_TYPES.OUTPUT],
-      [NODE_TYPES.OUTPUT]: []
-    };
-
-    return validConnections[sourceNode.type].includes(targetNode.type);
-  };
-
-  const addEdge = (sourceId, targetId) => {
-    if (!validateConnection(sourceId, targetId)) {
-      return false;
-    }
-
-    const newEdge = {
-      id: `${sourceId}-${targetId}`,
-      source: sourceId,
-      target: targetId
-    };
-
-    setEdges(prev => [...prev, newEdge]);
-    return true;
-  };
-
-  const removeNode = (id) => {
-    setNodes(prev => prev.filter(node => node.id !== id));
-    setEdges(prev => prev.filter(edge =>
-      edge.source !== id && edge.target !== id
-    ));
-  };
-
-  const removeEdge = (id) => {
-    setEdges(prev => prev.filter(edge => edge.id !== id));
-  };
-
+  // Context value
   const value = {
+    // State
     nodes,
     edges,
     selectedNode,
     isDragging,
-    NODE_TYPES,
     draggedNode,
     dragOffset,
+    NODE_TYPES,
+
+    // State setters
     setNodes,
     setEdges,
     setSelectedNode,
     setIsDragging,
+    setDraggedNode,
+    setDragOffset,
+
+    // Node operations
     addNode,
     updateNodeConfig,
     removeNode,
     addEdge,
     removeEdge,
+
+    // Validation
     validateConnection,
-    setDraggedNode,
-    setDragOffset
+    validateWorkflow,
+    WorkflowError
   };
 
   return (
@@ -124,3 +85,9 @@ export const DragDropProvider = ({ children }) => {
     </DragDropContext.Provider>
   );
 };
+
+DragDropProvider.propTypes = {
+  children: PropTypes.node.isRequired
+};
+
+export default DragDropProvider;
