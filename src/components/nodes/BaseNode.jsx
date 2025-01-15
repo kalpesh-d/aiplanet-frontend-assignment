@@ -62,7 +62,11 @@ const BaseNode = ({
         </div>
 
         {/* Description */}
-        <div className={`bg-${color}-50 px-6 py-4`}>
+        <div className={`${color === 'blue' ? 'bg-blue-50' :
+          color === 'purple' ? 'bg-purple-50' :
+            color === 'green' ? 'bg-green-50' :
+              'bg-slate-50'
+          } px-6 py-4`}>
           <p className="text-slate-600 text-sm">{description}</p>
         </div>
 
