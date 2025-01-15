@@ -75,27 +75,27 @@ const BaseNode = ({
       {/* Handles */}
       {handles.target && (
         <div className="absolute bottom-5 left-0 px-6">
-          <div className={`${handleContainerStyles} bg-${color}-100`}>
+          <div className={`${handleContainerStyles} bg-${color}-50`}>
             <Handle
               type="target"
               position={Position.Left}
-              className={`!left-0 !bg-${color}-500 ${handleStyles}`}
+              className={`!left-0 !border-${color}-500 ${handleStyles}`}
             />
           </div>
-          <p className="text-slate-500 text-xs mt-1 text-center">Input</p>
+          <p className="text-slate-500 text-xs mt-1 text-center relative bottom-3">Input</p>
         </div>
       )}
 
       {handles.source && (
         <div className="absolute bottom-5 right-0 px-6">
-          <div className={`${handleContainerStyles} bg-${color}-100`}>
+          <div className={`${handleContainerStyles} bg-${color}-50`}>
             <Handle
               type="source"
               position={Position.Right}
-              className={`!right-0 !bg-${color}-500 ${handleStyles}`}
+              className={`!right-0 !border-${color}-500 ${handleStyles}`}
             />
           </div>
-          <p className="text-slate-500 text-xs mt-1 text-center">Output</p>
+          <p className="text-slate-500 text-xs mt-1 text-center relative bottom-3">Output</p>
         </div>
       )}
     </div>
