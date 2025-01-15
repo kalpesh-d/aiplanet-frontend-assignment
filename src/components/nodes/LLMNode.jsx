@@ -20,6 +20,11 @@ const LLMNode = ({ data, selected }) => {
     validateConfig(name, value);
   }, [handleConfigChange, validateConfig]);
 
+  const handleSliderInteraction = (e) => {
+    // Only stop propagation to prevent node dragging
+    e.stopPropagation();
+  };
+
   return (
     <BaseNode
       icon={Cpu}
@@ -83,7 +88,7 @@ const LLMNode = ({ data, selected }) => {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 nodrag" onMouseDown={handleSliderInteraction}>
           <div className="flex justify-between items-center">
             <label className="font-medium text-sm text-slate-800" htmlFor="temperature">
               Temperature
@@ -109,7 +114,7 @@ const LLMNode = ({ data, selected }) => {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 nodrag" onMouseDown={handleSliderInteraction}>
           <div className="flex justify-between items-center">
             <label className="font-medium text-sm text-slate-800" htmlFor="maxTokens">
               Max Tokens

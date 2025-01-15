@@ -5,9 +5,9 @@ export const NODE_TYPES = {
 };
 
 export const NODE_COLORS = {
-  [NODE_TYPES.INPUT]: "green",
+  [NODE_TYPES.INPUT]: "blue",
   [NODE_TYPES.LLM]: "purple",
-  [NODE_TYPES.OUTPUT]: "blue",
+  [NODE_TYPES.OUTPUT]: "green",
 };
 
 export const NODE_DESCRIPTIONS = {

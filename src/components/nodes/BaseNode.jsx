@@ -2,6 +2,7 @@ import { Circle } from "lucide-react";
 import { Handle, Position } from "@xyflow/react";
 import PropTypes from 'prop-types';
 import { nodeStyles } from '../../styles/nodeStyles';
+import { NODE_COLORS } from "../../constants/nodeTypes";
 
 const BaseNode = ({
   icon: Icon,
@@ -30,9 +31,9 @@ const BaseNode = ({
       : 'border-slate-200';
 
   const descriptionColor =
-    color === 'blue' ? 'bg-blue-50' :
-      color === 'purple' ? 'bg-purple-50' :
-        color === 'green' ? 'bg-green-50' : 'bg-slate-50';
+    color === NODE_COLORS.INPUT ? 'bg-blue-50' :
+      color === NODE_COLORS.LLM ? 'bg-purple-50' :
+        color === NODE_COLORS.OUTPUT ? 'bg-green-50' : 'bg-slate-50';
 
   return (
     <div
