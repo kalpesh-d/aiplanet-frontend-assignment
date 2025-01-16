@@ -1,32 +1,23 @@
 import { useCallback } from "react";
 import { NODE_TYPES } from "../constants/nodeTypes";
 
-const DEFAULT_NODE_CONFIG = {
-  [NODE_TYPES.LLM]: {
-    model: "gpt-3.5-turbo",
-    temperature: 0.7,
-    maxTokens: 256,
-    baseurl: "https://api.openai.com/v1/chat/completions",
-    apikey: "",
-  },
-  [NODE_TYPES.INPUT]: {},
-  [NODE_TYPES.OUTPUT]: {},
+const DEFAULT_CONFIG = {
+  model: "gpt-3.5-turbo",
+  temperature: 0.7,
+  maxTokens: 256,
+  apikey: "",
 };
 
 export const useNodeOperations = (setNodes, setEdges) => {
   const addNode = useCallback(
     (type, position) => {
-      if (!Object.values(NODE_TYPES).includes(type)) {
-        throw new Error(`Invalid node type: ${type}`);
-      }
-
       const newNode = {
         id: `${type}-${Date.now()}`,
         type,
         position,
         data: {
           label: type.toUpperCase(),
-          config: DEFAULT_NODE_CONFIG[type],
+          config: type === NODE_TYPES.LLM ? DEFAULT_CONFIG : {},
         },
       };
 
@@ -38,15 +29,9 @@ export const useNodeOperations = (setNodes, setEdges) => {
 
   const updateNodeConfig = useCallback(
     (nodeId, config) => {
-      if (!nodeId) {
-        throw new Error("Node ID is required for update");
-      }
-
       setNodes((prev) => {
         const nodeIndex = prev.findIndex((node) => node.id === nodeId);
-        if (nodeIndex === -1) {
-          throw new Error(`Node not found: ${nodeId}`);
-        }
+        if (nodeIndex === -1) return prev;
 
         const updatedNodes = [...prev];
         updatedNodes[nodeIndex] = {
@@ -65,7 +50,6 @@ export const useNodeOperations = (setNodes, setEdges) => {
   const removeNode = useCallback(
     (id) => {
       if (!id) return;
-
       setNodes((prev) => prev.filter((node) => node.id !== id));
       setEdges((prev) =>
         prev.filter((edge) => edge.source !== id && edge.target !== id)
@@ -81,9 +65,7 @@ export const useNodeOperations = (setNodes, setEdges) => {
         source: sourceId,
         target: targetId,
       };
-
       setEdges((prev) => [...prev, newEdge]);
-      return true;
     },
     [setEdges]
   );

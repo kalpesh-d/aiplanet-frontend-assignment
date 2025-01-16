@@ -9,21 +9,15 @@ const LLMNode = ({ data, selected }) => {
     error,
     isSuccess,
     handleConfigChange,
-    validateConfig
   } = useLLMConfig(data.config);
 
   const [showApiKey, setShowApiKey] = useState(false);
 
   const handleInputChange = useCallback((e) => {
+    e.stopPropagation();
     const { name, value } = e.target;
     handleConfigChange(name, value);
-    validateConfig(name, value);
-  }, [handleConfigChange, validateConfig]);
-
-  const handleSliderInteraction = (e) => {
-    // Only stop propagation to prevent node dragging
-    e.stopPropagation();
-  };
+  }, [handleConfigChange]);
 
   return (
     <BaseNode
@@ -34,9 +28,8 @@ const LLMNode = ({ data, selected }) => {
       error={error}
       isSuccess={isSuccess}
       color="purple"
-      data-testid="llm-node"
     >
-      <div className="space-y-4">
+      <div className="space-y-4 nodrag">
         <div className="space-y-2">
           <label className="font-medium text-sm text-slate-800" htmlFor="model">
             Model
@@ -47,7 +40,6 @@ const LLMNode = ({ data, selected }) => {
             onChange={handleInputChange}
             name="model"
             className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 bg-white"
-            data-testid="model-select"
           >
             <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
             <option value="gpt-4">GPT-4</option>
@@ -82,13 +74,19 @@ const LLMNode = ({ data, selected }) => {
               value={config.apikey}
               onChange={handleInputChange}
               placeholder="sk-..."
-              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
-              data-testid="apikey-input"
+              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400 pr-24"
             />
+            <button
+              onClick={() => setShowApiKey(!showApiKey)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-medium text-purple-600 hover:text-purple-700"
+              type="button"
+            >
+              {showApiKey ? 'HIDE' : 'SHOW'}
+            </button>
           </div>
         </div>
 
-        <div className="space-y-2 nodrag" onMouseDown={handleSliderInteraction}>
+        <div className="space-y-2">
           <div className="flex justify-between items-center">
             <label className="font-medium text-sm text-slate-800" htmlFor="temperature">
               Temperature
@@ -105,16 +103,10 @@ const LLMNode = ({ data, selected }) => {
             value={config.temperature}
             onChange={handleInputChange}
             className="w-full accent-purple-500"
-            data-testid="temperature-slider"
           />
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>Precise</span>
-            <span>Balanced</span>
-            <span>Creative</span>
-          </div>
         </div>
 
-        <div className="space-y-2 nodrag" onMouseDown={handleSliderInteraction}>
+        <div className="space-y-2">
           <div className="flex justify-between items-center">
             <label className="font-medium text-sm text-slate-800" htmlFor="maxTokens">
               Max Tokens
@@ -131,13 +123,7 @@ const LLMNode = ({ data, selected }) => {
             value={config.maxTokens}
             onChange={handleInputChange}
             className="w-full accent-purple-500"
-            data-testid="max-tokens-slider"
           />
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>Short</span>
-            <span>Medium</span>
-            <span>Long</span>
-          </div>
         </div>
       </div>
     </BaseNode>

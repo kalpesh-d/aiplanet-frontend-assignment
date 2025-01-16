@@ -7,10 +7,7 @@ import { NODE_TYPES } from '../constants/nodeTypes';
 const initialState = {
   nodes: [],
   edges: [],
-  selectedNode: null,
-  isDragging: false,
-  draggedNode: null,
-  dragOffset: { x: 0, y: 0 }
+  isDragging: false
 };
 
 export const DragDropContext = createContext(null);
@@ -24,15 +21,10 @@ export const useDragDrop = () => {
 };
 
 export const DragDropProvider = ({ children }) => {
-  // State
   const [nodes, setNodes] = useState(initialState.nodes);
   const [edges, setEdges] = useState(initialState.edges);
-  const [selectedNode, setSelectedNode] = useState(initialState.selectedNode);
   const [isDragging, setIsDragging] = useState(initialState.isDragging);
-  const [draggedNode, setDraggedNode] = useState(initialState.draggedNode);
-  const [dragOffset, setDragOffset] = useState(initialState.dragOffset);
 
-  // Custom hooks
   const {
     addNode,
     updateNodeConfig,
@@ -43,40 +35,24 @@ export const DragDropProvider = ({ children }) => {
 
   const {
     validateConnection,
-    validateWorkflow,
-    WorkflowError
+    validateWorkflow
   } = useWorkflowValidation(nodes);
 
-  // Context value
   const value = {
-    // State
     nodes,
     edges,
-    selectedNode,
     isDragging,
-    draggedNode,
-    dragOffset,
     NODE_TYPES,
-
-    // State setters
     setNodes,
     setEdges,
-    setSelectedNode,
     setIsDragging,
-    setDraggedNode,
-    setDragOffset,
-
-    // Node operations
     addNode,
     updateNodeConfig,
     removeNode,
     addEdge,
     removeEdge,
-
-    // Validation
     validateConnection,
-    validateWorkflow,
-    WorkflowError
+    validateWorkflow
   };
 
   return (
