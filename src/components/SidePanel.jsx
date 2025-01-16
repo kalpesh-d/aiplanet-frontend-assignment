@@ -1,5 +1,5 @@
 import { FileInput, Cpu, FileOutput, Menu } from "lucide-react";
-import { useDragDrop } from '../context/DragDropContext'
+import { useWorkflow } from '../context/WorkflowContext'
 
 const nodes = [
   {
@@ -17,7 +17,7 @@ const nodes = [
 ];
 
 const SidePanel = () => {
-  const { isDragging, setIsDragging } = useDragDrop();
+  const { isDragging, setIsDragging } = useWorkflow();
 
   const handleDragStart = (e, type) => {
     setIsDragging(true);

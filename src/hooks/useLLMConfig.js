@@ -3,7 +3,6 @@ import { useState, useCallback } from "react";
 export const useLLMConfig = (initialConfig) => {
   const [config, setConfig] = useState(initialConfig);
   const [error, setError] = useState(null);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleConfigChange = useCallback((name, value) => {
     setConfig((prev) => ({
@@ -11,20 +10,15 @@ export const useLLMConfig = (initialConfig) => {
       [name]: value,
     }));
 
-    // Simple validation
-    if (name === "apikey" && !value.startsWith("sk-")) {
-      setError("Invalid API key format");
-      setIsSuccess(false);
-    } else {
-      setError(null);
-      setIsSuccess(true);
+    // Only validate API key format
+    if (name === "apikey") {
+      setError(!value.startsWith("sk-") ? "Invalid API key format" : null);
     }
   }, []);
 
   return {
     config,
     error,
-    isSuccess,
     handleConfigChange,
   };
 };

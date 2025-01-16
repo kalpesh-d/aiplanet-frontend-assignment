@@ -1,18 +1,18 @@
 import Header from "./components/Header";
 import DropArea from "./components/DropArea";
 import SidePanel from "./components/SidePanel";
-import { DragDropProvider } from "./context/DragDropContext";
+import Alert from "./components/Alert";
+import { WorkflowProvider } from "./context/WorkflowContext";
 
-function App() {
+const App = () => {
   return (
-    <DragDropProvider>
+    <WorkflowProvider>
       <Header />
-      <main>
-        <DropArea />
-        <SidePanel />
-      </main>
-    </DragDropProvider>
+      <Alert />
+      <DropArea />
+      <SidePanel />
+    </WorkflowProvider>
   );
-}
+};
 
-export default App
+export default App;

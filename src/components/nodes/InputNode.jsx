@@ -1,43 +1,34 @@
 import { FileInput } from "lucide-react";
-import { useState } from "react";
+import { useCallback } from "react";
+import { useWorkflow } from "../../context/WorkflowContext";
 import BaseNode from "./BaseNode";
 
-const InputNode = ({ data, selected }) => {
-  const [input, setInput] = useState("");
-  const [error, setError] = useState(null);
-  const [isSuccess, setIsSuccess] = useState(false);
+const InputNode = ({ selected }) => {
+  const { inputText, handleInputChange } = useWorkflow();
 
-  const handleInputChange = (e) => {
-    setInput(e.target.value);
-    if (!e.target.value.trim()) {
-      setError("Input is missing input key");
-      setIsSuccess(false);
-    } else {
-      setError(null);
-      setIsSuccess(true);
-    }
-  };
+  const onChange = useCallback((e) => {
+    handleInputChange(e.target.value);
+  }, [handleInputChange]);
 
   return (
     <BaseNode
       icon={FileInput}
       title="INPUT"
-      description="Write the input/ question you want to ask"
+      description="Write the input/question you want to ask"
       selected={selected}
-      error={error}
-      isSuccess={isSuccess}
       color="blue"
       handles={{ source: true, target: false }}
     >
-      <div className="space-y-2">
+      <div className="space-y-2 nodrag">
         <div className="flex items-center">
-          <label htmlFor="input" className="font-medium text-slate-800">Input</label>
+          <label htmlFor="input" className="font-medium text-sm text-slate-800">Input</label>
         </div>
-        <input
+        <textarea
           id="input"
-          value={input}
-          onChange={handleInputChange}
-          placeholder="Type Something..."
+          value={inputText}
+          onChange={onChange}
+          placeholder="Type your question or prompt here..."
+          rows={4}
           className="w-full p-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none text-slate-600 placeholder:text-slate-400"
         />
       </div>
@@ -45,4 +36,4 @@ const InputNode = ({ data, selected }) => {
   );
 };
 
-export default InputNode; 
+export default InputNode;

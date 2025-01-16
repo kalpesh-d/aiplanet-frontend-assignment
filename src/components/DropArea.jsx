@@ -1,4 +1,4 @@
-import { useDragDrop } from "../context/DragDropContext";
+import { useWorkflow } from "../context/WorkflowContext";
 import InputNode from "./nodes/InputNode";
 import LLMNode from "./nodes/LLMNode";
 import OutputNode from "./nodes/OutputNode";
@@ -19,7 +19,7 @@ const edgeTypes = {
 };
 
 const DropArea = () => {
-  const { isDragging } = useDragDrop();
+  const { isDragging } = useWorkflow();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [error, setError] = useState(null);
@@ -105,11 +105,6 @@ const DropArea = () => {
     event.dataTransfer.dropEffect = 'move';
   };
 
-  const onNodeClick = useCallback((_, node) => {
-    // You can implement node selection/configuration here
-    console.log('Node clicked:', node);
-  }, []);
-
   return (
     <div className="h-[calc(100vh-6rem)] bg-slate-50">
       <ReactFlow
@@ -120,7 +115,6 @@ const DropArea = () => {
         onConnect={onConnect}
         onDrop={onDrop}
         onDragOver={onDragOver}
-        onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         className={isDragging ? "opacity-50" : ""}

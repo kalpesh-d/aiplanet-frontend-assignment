@@ -6,6 +6,7 @@ const DEFAULT_CONFIG = {
   temperature: 0.7,
   maxTokens: 256,
   apikey: "",
+  baseurl: "https://api.openai.com/v1/chat/completions",
 };
 
 export const useNodeOperations = (setNodes, setEdges) => {
@@ -20,7 +21,6 @@ export const useNodeOperations = (setNodes, setEdges) => {
           config: type === NODE_TYPES.LLM ? DEFAULT_CONFIG : {},
         },
       };
-
       setNodes((prev) => [...prev, newNode]);
       return newNode.id;
     },
@@ -29,20 +29,19 @@ export const useNodeOperations = (setNodes, setEdges) => {
 
   const updateNodeConfig = useCallback(
     (nodeId, config) => {
-      setNodes((prev) => {
-        const nodeIndex = prev.findIndex((node) => node.id === nodeId);
-        if (nodeIndex === -1) return prev;
-
-        const updatedNodes = [...prev];
-        updatedNodes[nodeIndex] = {
-          ...updatedNodes[nodeIndex],
-          data: {
-            ...updatedNodes[nodeIndex].data,
-            config: { ...updatedNodes[nodeIndex].data.config, ...config },
-          },
-        };
-        return updatedNodes;
-      });
+      setNodes((prev) =>
+        prev.map((node) =>
+          node.id === nodeId
+            ? {
+                ...node,
+                data: {
+                  ...node.data,
+                  config: { ...node.data.config, ...config },
+                },
+              }
+            : node
+        )
+      );
     },
     [setNodes]
   );
@@ -78,11 +77,5 @@ export const useNodeOperations = (setNodes, setEdges) => {
     [setEdges]
   );
 
-  return {
-    addNode,
-    updateNodeConfig,
-    removeNode,
-    addEdge,
-    removeEdge,
-  };
+  return { addNode, updateNodeConfig, removeNode, addEdge, removeEdge };
 };
