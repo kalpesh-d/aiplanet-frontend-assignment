@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import axios from 'axios';
 import { NODE_TYPES } from '../constants/nodeTypes';
 
 const initialState = {
@@ -45,53 +46,35 @@ export const WorkflowProvider = ({ children }) => {
     setLLMConfig(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const addNode = useCallback((type, position) => {
-    const newNode = {
-      id: `${type}-${Date.now()}`,
-      type,
-      position,
-      data: { label: type.toUpperCase() }
-    };
-    setNodes(prev => [...prev, newNode]);
-  }, []);
-
-  const addEdge = useCallback((sourceId, targetId) => {
-    const newEdge = { id: `${sourceId}-${targetId}`, source: sourceId, target: targetId };
-    setEdges(prev => [...prev, newEdge]);
-  }, []);
-
   const executeWorkflow = useCallback(async () => {
     try {
       setIsExecuting(true);
       setExecutionError(null);
       setShowSuccess(false);
 
+      // Validate inputs
       if (!inputText.trim()) throw new Error('Input text is required');
       if (!llmConfig.apikey) throw new Error('API key is required');
 
-      const response = await fetch(llmConfig.baseurl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${llmConfig.apikey}`
-        },
-        body: JSON.stringify({
+      // Make API call
+      const { data } = await axios.post(
+        llmConfig.baseurl,
+        {
           model: llmConfig.model,
           messages: [{ role: 'user', content: inputText }],
           temperature: parseFloat(llmConfig.temperature),
           max_tokens: parseInt(llmConfig.maxTokens)
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'Failed to get response from OpenAI');
-      }
-
-      const data = await response.json();
-      const output = data.choices[0]?.message?.content;
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${llmConfig.apikey}`
+          }
+        }
+      );
 
       // Update output nodes
+      const output = data.choices[0]?.message?.content;
       setNodes(prev => prev.map(node =>
         node.type === NODE_TYPES.OUTPUT
           ? { ...node, data: { ...node.data, output } }
@@ -100,7 +83,8 @@ export const WorkflowProvider = ({ children }) => {
 
       setShowSuccess(true);
     } catch (err) {
-      setExecutionError(err.message);
+      const errorMessage = err.response?.data?.error?.message || err.message;
+      setExecutionError(errorMessage);
       throw err;
     } finally {
       setIsExecuting(false);
@@ -116,13 +100,13 @@ export const WorkflowProvider = ({ children }) => {
     showSuccess,
     inputText,
     llmConfig,
+    setNodes,
+    setEdges,
     setIsDragging,
     setShowSuccess,
     setExecutionError,
     handleInputChange,
     handleLLMConfigChange,
-    addNode,
-    addEdge,
     executeWorkflow
   };
 

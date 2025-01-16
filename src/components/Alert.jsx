@@ -10,7 +10,7 @@ const Alert = () => {
       const timer = setTimeout(() => {
         setShowSuccess(false);
         setExecutionError(null);
-      }, 3000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [showSuccess, executionError, setShowSuccess, setExecutionError]);
@@ -18,48 +18,36 @@ const Alert = () => {
   if (!executionError && !showSuccess) return null;
 
   const isError = Boolean(executionError);
-  const bgColor = isError ? 'bg-red-500' : 'bg-green-600';
-  const borderColor = isError ? 'border-red-400' : 'border-green-400';
-  const textColor = 'text-white';
-
-  const handleClose = () => {
-    setShowSuccess(false);
-    setExecutionError(null);
-  };
 
   return (
     <div className={`
       fixed top-24 right-4 z-50
-      ${bgColor} ${borderColor}
+      ${isError ? 'bg-red-500' : 'bg-green-600'}
       border rounded-lg shadow-lg p-4 w-[32rem]
       animate-in fade-in slide-in-from-top-4
-      transition-all duration-200
     `}>
       <div className="flex items-start gap-3">
         {isError ? (
-          <CircleX className={`w-5 h-5 ${textColor} mt-0.5`} />
+          <CircleX className="w-5 h-5 text-white mt-0.5" />
         ) : (
-          <CheckCircle2 className={`w-5 h-5 ${textColor} mt-0.5`} />
+          <CheckCircle2 className="w-5 h-5 text-white mt-0.5" />
         )}
 
-        <div className="flex-1">
-          <h3 className={`font-medium ${textColor}`}>
+        <div className="flex-1 text-white">
+          <h3 className="font-medium">
             {isError ? 'Error while running the flow' : 'Flow ran successfully'}
           </h3>
-          <p className={`mt-1 text-sm ${textColor}`}>
+          <p className="mt-1 text-sm">
             {isError ? executionError : 'The workflow has been executed successfully.'}
           </p>
         </div>
 
         <button
-          onClick={handleClose}
-          className={`
-            p-1 rounded-md 
-            hover:bg-white/20
-            transition-colors duration-200
-            ${textColor}
-          `}
-          aria-label="Close alert"
+          onClick={() => {
+            setShowSuccess(false);
+            setExecutionError(null);
+          }}
+          className="p-1 rounded-md text-white hover:bg-white/20"
         >
           <X size={14} />
         </button>
