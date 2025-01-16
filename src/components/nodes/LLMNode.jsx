@@ -74,15 +74,8 @@ const LLMNode = ({ data, selected }) => {
               value={config.apikey}
               onChange={handleInputChange}
               placeholder="sk-..."
-              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400 pr-24"
+              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
             />
-            <button
-              onClick={() => setShowApiKey(!showApiKey)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-medium text-purple-600 hover:text-purple-700"
-              type="button"
-            >
-              {showApiKey ? 'HIDE' : 'SHOW'}
-            </button>
           </div>
         </div>
 
