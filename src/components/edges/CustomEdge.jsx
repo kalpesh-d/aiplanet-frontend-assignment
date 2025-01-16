@@ -1,4 +1,4 @@
-import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react';
+import { BaseEdge, getBezierPath } from '@xyflow/react';
 
 const CustomEdge = ({
   sourceX,
@@ -8,10 +8,9 @@ const CustomEdge = ({
   sourcePosition,
   targetPosition,
   style = {},
-  markerEnd,
-  data
+  markerEnd
 }) => {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -29,10 +28,7 @@ const CustomEdge = ({
           ...style,
           strokeWidth: 2,
           stroke: 'url(#edge-gradient)',
-          transition: 'stroke-width 0.2s',
-          '&:hover': {
-            strokeWidth: 3
-          }
+          transition: 'stroke-width 0.2s'
         }}
       />
       <defs>

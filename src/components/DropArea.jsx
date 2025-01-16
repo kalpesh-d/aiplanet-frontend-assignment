@@ -4,7 +4,7 @@ import LLMNode from "./nodes/LLMNode";
 import OutputNode from "./nodes/OutputNode";
 import CustomEdge from "./edges/CustomEdge";
 import { useCallback, useState } from "react";
-import { addEdge, Background, Controls, ReactFlow, useEdgesState, useNodesState, Panel } from "@xyflow/react";
+import { addEdge, Background, Controls, ReactFlow, Panel, applyNodeChanges } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import { AlertCircle } from "lucide-react";
 
@@ -19,15 +19,28 @@ const edgeTypes = {
 };
 
 const DropArea = () => {
-  const { isDragging } = useWorkflow();
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const { isDragging, nodes, edges, setNodes, setEdges } = useWorkflow();
   const [error, setError] = useState(null);
 
   const showError = (message) => {
     setError(message);
     setTimeout(() => setError(null), 3000);
   };
+
+  const onNodesChange = useCallback((changes) => {
+    setNodes(nds => applyNodeChanges(changes, nds));
+  }, [setNodes]);
+
+  const onEdgesChange = useCallback((changes) => {
+    setEdges(eds => {
+      return changes.reduce((acc, change) => {
+        if (change.type === 'remove') {
+          return acc.filter((e) => e.id !== change.id);
+        }
+        return acc;
+      }, eds);
+    });
+  }, [setEdges]);
 
   const onConnect = useCallback((params) => {
     const sourceNode = nodes.find(n => n.id === params.source);
@@ -54,11 +67,11 @@ const DropArea = () => {
         type: 'custom',
         animated: true,
       };
-      setEdges((eds) => addEdge(edge, eds));
+      setEdges(eds => addEdge(edge, eds));
     } else {
       showError(`Cannot connect ${sourceNode.type.toUpperCase()} to ${targetNode.type.toUpperCase()}`);
     }
-  }, [nodes, edges]);
+  }, [nodes, edges, setEdges]);
 
   const onDrop = (event) => {
     event.preventDefault();

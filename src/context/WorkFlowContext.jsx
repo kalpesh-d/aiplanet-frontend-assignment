@@ -46,6 +46,27 @@ export const WorkflowProvider = ({ children }) => {
     setLLMConfig(prev => ({ ...prev, ...updates }));
   }, []);
 
+  const validateWorkflow = useCallback(() => {
+    const inputNode = nodes.find(n => n.type === NODE_TYPES.INPUT);
+    const llmNode = nodes.find(n => n.type === NODE_TYPES.LLM);
+    const outputNode = nodes.find(n => n.type === NODE_TYPES.OUTPUT);
+
+    if (!inputNode || !llmNode || !outputNode) {
+      throw new Error('Workflow must contain Input, LLM, and Output nodes');
+    }
+
+    const inputToLLM = edges.some(e =>
+      e.source === inputNode.id && e.target === llmNode.id
+    );
+    const llmToOutput = edges.some(e =>
+      e.source === llmNode.id && e.target === outputNode.id
+    );
+
+    if (!inputToLLM || !llmToOutput) {
+      throw new Error('Nodes must be properly connected: Input → LLM → Output');
+    }
+  }, [nodes, edges]);
+
   const executeWorkflow = useCallback(async () => {
     try {
       setIsExecuting(true);
@@ -55,6 +76,9 @@ export const WorkflowProvider = ({ children }) => {
       // Validate inputs
       if (!inputText.trim()) throw new Error('Input text is required');
       if (!llmConfig.apikey) throw new Error('API key is required');
+
+      // Validate workflow
+      validateWorkflow();
 
       // Make API call
       const { data } = await axios.post(
@@ -89,7 +113,7 @@ export const WorkflowProvider = ({ children }) => {
     } finally {
       setIsExecuting(false);
     }
-  }, [inputText, llmConfig]);
+  }, [inputText, llmConfig, nodes, edges, validateWorkflow]);
 
   const value = {
     nodes,

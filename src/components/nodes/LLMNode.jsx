@@ -1,4 +1,4 @@
-import { Cpu } from "lucide-react";
+import { Cpu, Eye, EyeOff } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useWorkflow } from "../../context/WorkflowContext";
 import BaseNode from "./BaseNode";
@@ -14,6 +14,8 @@ const LLMNode = ({ selected }) => {
     if (name === 'maxTokens') updatedValue = parseInt(value);
     handleLLMConfigChange({ [name]: updatedValue });
   }, [handleLLMConfigChange]);
+
+  const toggleApiKeyVisibility = () => setShowApiKey(prev => !prev);
 
   return (
     <BaseNode
@@ -47,8 +49,7 @@ const LLMNode = ({ selected }) => {
             value={llmConfig.baseurl || ''}
             onChange={handleInputChange}
             placeholder="https://api.openai.com/v1/chat/completions"
-            className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 
-            focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
+            className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
           />
         </div>
 
@@ -83,11 +84,6 @@ const LLMNode = ({ selected }) => {
             onChange={handleInputChange}
             className="w-full accent-purple-500"
           />
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>Precise</span>
-            <span>Balanced</span>
-            <span>Creative</span>
-          </div>
         </div>
 
         <div className="space-y-2">
@@ -106,11 +102,6 @@ const LLMNode = ({ selected }) => {
             onChange={handleInputChange}
             className="w-full accent-purple-500"
           />
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>Short</span>
-            <span>Medium</span>
-            <span>Long</span>
-          </div>
         </div>
       </div>
     </BaseNode>
