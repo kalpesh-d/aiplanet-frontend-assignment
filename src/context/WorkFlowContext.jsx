@@ -27,7 +27,7 @@ export const useWorkflow = () => {
   return context;
 };
 
-export const WorkflowProvider = ({ children }) => {
+const WorkflowProvider = ({ children }) => {
   const [nodes, setNodes] = useState(initialState.nodes);
   const [edges, setEdges] = useState(initialState.edges);
   const [isDragging, setIsDragging] = useState(initialState.isDragging);
