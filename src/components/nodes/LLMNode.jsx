@@ -1,20 +1,53 @@
-import { Cpu, Eye, EyeOff } from "lucide-react";
+import { Cpu } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import { useWorkflow } from "../../context/WorkflowContext";
 import BaseNode from "./BaseNode";
+import axios from "axios";
 
-const GROQ_MODELS = [
-  "gemma2-9b-it",
-  "llama-3.3-70b-versatile",
-  "llama-3.1-8b-instant",
-  "llama3-70b-8192",
-  "llama3-8b-8192",
-  "mixtral-8x7b-32768"
-];
+const DEFAULT_MODEL = "gpt-3.5-turbo";
+const DEFAULT_BASE_URL = "https://api.openai.com/v1/chat/completions";
 
 const LLMNode = ({ selected }) => {
   const { llmConfig, handleLLMConfigChange } = useWorkflow();
-  const [showApiKey, setShowApiKey] = useState(false);
+  const [models, setModels] = useState([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [modelError, setModelError] = useState(null);
+
+  // Fetch models when component mounts
+  useEffect(() => {
+    const fetchModels = async () => {
+      setIsLoadingModels(true);
+      setModelError(null);
+      try {
+        const response = await axios.get('https://api.groq.com/openai/v1/models', {
+          headers: {
+            'Authorization': `Bearer ${llmConfig.apikey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setModels(response.data.data);
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
+        setModelError('Failed to load models. Please check your API key.');
+      } finally {
+        setIsLoadingModels(false);
+      }
+    };
+
+    if (llmConfig.apikey) {
+      fetchModels();
+    }
+  }, [llmConfig.apikey]);
+
+  // Set default model and URL when component mounts
+  useEffect(() => {
+    if (!llmConfig.model || !llmConfig.baseurl) {
+      handleLLMConfigChange({
+        model: DEFAULT_MODEL,
+        baseurl: DEFAULT_BASE_URL
+      });
+    }
+  }, []);
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -23,10 +56,9 @@ const LLMNode = ({ selected }) => {
     if (name === 'maxTokens') updatedValue = parseInt(value);
 
     if (name === 'model') {
-      const isGroqModel = GROQ_MODELS.includes(value);
-      const baseurl = isGroqModel
-        ? "https://api.groq.com/openai/v1/chat/completions"
-        : "https://api.openai.com/v1/chat/completions";
+      const baseurl = value.includes('gpt')
+        ? "https://api.openai.com/v1/chat/completions"
+        : "https://api.groq.com/openai/v1/chat/completions";
       handleLLMConfigChange({
         [name]: value,
         baseurl
@@ -35,6 +67,16 @@ const LLMNode = ({ selected }) => {
       handleLLMConfigChange({ [name]: updatedValue });
     }
   }, [handleLLMConfigChange]);
+
+  // Group models by provider
+  const groupedModels = models.reduce((acc, model) => {
+    const provider = model.owned_by;
+    if (!acc[provider]) {
+      acc[provider] = [];
+    }
+    acc[provider].push(model);
+    return acc;
+  }, {});
 
   return (
     <BaseNode
@@ -58,43 +100,48 @@ const LLMNode = ({ selected }) => {
               <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
               <option value="gpt-4">GPT-4</option>
             </optgroup>
-            <optgroup label="Groq Models">
-              {GROQ_MODELS.map(model => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ))}
-            </optgroup>
+            {Object.entries(groupedModels).map(([provider, providerModels]) => (
+              <optgroup key={provider} label={`${provider} Models`}>
+                {providerModels.map(model => (
+                  <option key={model.id} value={model.id}>
+                    {model.id}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
           </select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="font-medium text-sm text-slate-800" htmlFor="baseurl">API Base URL</label>
-          <input
-            id="baseurl"
-            type="url"
-            name="baseurl"
-            value={llmConfig.baseurl || ''}
-            onChange={handleInputChange}
-            placeholder="API endpoint will be set automatically based on model selection"
-            className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
-            readOnly
-          />
+          <div className="space-y-2">
+            <label className="font-medium text-sm text-slate-800" htmlFor="baseurl">API Base URL</label>
+            <input
+              id="baseurl"
+              type="url"
+              name="baseurl"
+              value={llmConfig.baseurl || ''}
+              onChange={handleInputChange}
+              placeholder="API endpoint will be set automatically based on model selection"
+              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 
+            focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
+              readOnly
+            /></div>
+          {modelError && (
+            <p className="text-xs text-red-500 mt-1">{modelError}</p>
+          )}
+          {isLoadingModels && (
+            <p className="text-xs text-slate-500 mt-1">Loading available models...</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <label className="font-medium text-sm text-slate-800" htmlFor="apikey">API Key</label>
-          <div className="relative">
-            <input
-              id="apikey"
-              type={showApiKey ? "text" : "password"}
-              name="apikey"
-              value={llmConfig.apikey}
-              onChange={handleInputChange}
-              placeholder="OpenAI or Groq"
-              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
-            />
-          </div>
+          <input
+            id="apikey"
+            type="password"
+            name="apikey"
+            value={llmConfig.apikey}
+            onChange={handleInputChange}
+            placeholder="Enter your API key"
+            className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
+          />
         </div>
 
         <div className="space-y-2">
@@ -114,7 +161,6 @@ const LLMNode = ({ selected }) => {
             className="w-full accent-purple-500"
           />
         </div>
-
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <label className="font-medium text-sm text-slate-800" htmlFor="maxTokens">Max Tokens</label>
