@@ -16,7 +16,7 @@ const initialState = {
     temperature: 0.7,
     maxTokens: 256,
     apikey: '',
-    baseurl: 'https://api.groq.com/openai/v1/chat/completions'
+    baseurl: 'https://api.openai.com/v1/chat/completions'
   }
 };
 

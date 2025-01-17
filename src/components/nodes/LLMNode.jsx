@@ -12,22 +12,9 @@ const GROQ_MODELS = [
   "mixtral-8x7b-32768"
 ];
 
-const DEFAULT_MODEL = "gpt-3.5-turbo";
-const DEFAULT_BASE_URL = "https://api.openai.com/v1/chat/completions";
-
 const LLMNode = ({ selected }) => {
   const { llmConfig, handleLLMConfigChange } = useWorkflow();
   const [showApiKey, setShowApiKey] = useState(false);
-
-  // Set default model and URL when component mounts
-  useEffect(() => {
-    if (!llmConfig.model || !llmConfig.baseurl) {
-      handleLLMConfigChange({
-        model: DEFAULT_MODEL,
-        baseurl: DEFAULT_BASE_URL
-      });
-    }
-  }, []);
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -35,7 +22,6 @@ const LLMNode = ({ selected }) => {
     if (name === 'temperature') updatedValue = parseFloat(value);
     if (name === 'maxTokens') updatedValue = parseInt(value);
 
-    // If model is changed, update the baseurl accordingly
     if (name === 'model') {
       const isGroqModel = GROQ_MODELS.includes(value);
       const baseurl = isGroqModel
@@ -49,8 +35,6 @@ const LLMNode = ({ selected }) => {
       handleLLMConfigChange({ [name]: updatedValue });
     }
   }, [handleLLMConfigChange]);
-
-  const toggleApiKeyVisibility = () => setShowApiKey(prev => !prev);
 
   return (
     <BaseNode
