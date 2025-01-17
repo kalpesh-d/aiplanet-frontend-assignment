@@ -2,7 +2,7 @@ import { Cpu } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import { useWorkflow } from "../../context/WorkflowContext";
 import BaseNode from "./BaseNode";
-import axios from "axios";
+import { groqService } from "../../services/groqService";
 
 const DEFAULT_MODEL = "gpt-3.5-turbo";
 const DEFAULT_BASE_URL = "https://api.openai.com/v1/chat/completions";
@@ -19,16 +19,11 @@ const LLMNode = ({ selected }) => {
       setIsLoadingModels(true);
       setModelError(null);
       try {
-        const response = await axios.get('https://api.groq.com/openai/v1/models', {
-          headers: {
-            'Authorization': `Bearer ${llmConfig.apikey}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        setModels(response.data.data);
+        groqService.setApiKey(llmConfig.apikey);
+        const models = await groqService.fetchModels();
+        setModels(models);
       } catch (error) {
-        console.error('Failed to fetch models:', error);
-        setModelError('Failed to load models. Please check your API key.');
+        setModelError(error.message);
       } finally {
         setIsLoadingModels(false);
       }
@@ -119,10 +114,10 @@ const LLMNode = ({ selected }) => {
               value={llmConfig.baseurl || ''}
               onChange={handleInputChange}
               placeholder="API endpoint will be set automatically based on model selection"
-              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 
-            focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
+              className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
               readOnly
-            /></div>
+            />
+          </div>
           {modelError && (
             <p className="text-xs text-red-500 mt-1">{modelError}</p>
           )}

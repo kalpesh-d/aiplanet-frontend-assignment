@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import axios from 'axios';
-import { NODE_TYPES } from '../constants/nodeTypes';
+import { workflowService } from '../services/workflowService';
 
 const initialState = {
   nodes: [],
@@ -46,74 +45,33 @@ export const WorkflowProvider = ({ children }) => {
     setLLMConfig(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const validateWorkflow = useCallback(() => {
-    const inputNode = nodes.find(n => n.type === NODE_TYPES.INPUT);
-    const llmNode = nodes.find(n => n.type === NODE_TYPES.LLM);
-    const outputNode = nodes.find(n => n.type === NODE_TYPES.OUTPUT);
-
-    if (!inputNode || !llmNode || !outputNode) {
-      throw new Error('Workflow must contain Input, LLM, and Output nodes');
-    }
-
-    const inputToLLM = edges.some(e =>
-      e.source === inputNode.id && e.target === llmNode.id
-    );
-    const llmToOutput = edges.some(e =>
-      e.source === llmNode.id && e.target === outputNode.id
-    );
-
-    if (!inputToLLM || !llmToOutput) {
-      throw new Error('Nodes must be properly connected: Input → LLM → Output');
-    }
-  }, [nodes, edges]);
-
   const executeWorkflow = useCallback(async () => {
     try {
       setIsExecuting(true);
       setExecutionError(null);
       setShowSuccess(false);
 
-      // Validate inputs
-      if (!inputText.trim()) throw new Error('Input text is required');
-      if (!llmConfig.apikey) throw new Error('API key is required');
-
-      // Validate workflow
-      validateWorkflow();
-
-      // Make API call
-      const { data } = await axios.post(
-        llmConfig.baseurl,
-        {
-          model: llmConfig.model,
-          messages: [{ role: 'user', content: inputText }],
-          temperature: parseFloat(llmConfig.temperature),
-          max_tokens: parseInt(llmConfig.maxTokens)
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${llmConfig.apikey}`
-          }
-        }
+      const output = await workflowService.executeWorkflow(
+        nodes,
+        edges,
+        llmConfig,
+        inputText
       );
 
       // Update output nodes
-      const output = data.choices[0]?.message?.content;
       setNodes(prev => prev.map(node =>
-        node.type === NODE_TYPES.OUTPUT
+        node.type === 'output'
           ? { ...node, data: { ...node.data, output } }
           : node
       ));
 
       setShowSuccess(true);
     } catch (err) {
-      const errorMessage = err.response?.data?.error?.message || err.message;
-      setExecutionError(errorMessage);
-      throw err;
+      setExecutionError(err.message);
     } finally {
       setIsExecuting(false);
     }
-  }, [inputText, llmConfig, nodes, edges, validateWorkflow]);
+  }, [inputText, llmConfig, nodes, edges]);
 
   const value = {
     nodes,
