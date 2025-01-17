@@ -2,7 +2,7 @@ import Header from "./components/Header";
 import DropArea from "./components/DropArea";
 import SidePanel from "./components/SidePanel";
 import Alert from "./components/Alert";
-import { WorkflowProvider } from "./context/WorkflowContext";
+import { WorkflowProvider } from "./context/WorkFlowContext";
 
 const App = () => (
   <WorkflowProvider>
