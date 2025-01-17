@@ -12,11 +12,11 @@ const initialState = {
   showSuccess: false,
   inputText: '',
   llmConfig: {
-    model: 'gpt-3.5-turbo',
+    model: '',
     temperature: 0.7,
     maxTokens: 256,
     apikey: '',
-    baseurl: 'https://api.openai.com/v1/chat/completions'
+    baseurl: 'https://api.groq.com/openai/v1/chat/completions'
   }
 };
 

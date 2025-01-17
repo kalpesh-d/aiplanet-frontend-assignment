@@ -1,18 +1,53 @@
 import { Cpu, Eye, EyeOff } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useWorkflow } from "../../context/WorkflowContext";
 import BaseNode from "./BaseNode";
+
+const GROQ_MODELS = [
+  "gemma2-9b-it",
+  "llama-3.3-70b-versatile",
+  "llama-3.1-8b-instant",
+  "llama3-70b-8192",
+  "llama3-8b-8192",
+  "mixtral-8x7b-32768"
+];
+
+const DEFAULT_MODEL = "gpt-3.5-turbo";
+const DEFAULT_BASE_URL = "https://api.openai.com/v1/chat/completions";
 
 const LLMNode = ({ selected }) => {
   const { llmConfig, handleLLMConfigChange } = useWorkflow();
   const [showApiKey, setShowApiKey] = useState(false);
+
+  // Set default model and URL when component mounts
+  useEffect(() => {
+    if (!llmConfig.model || !llmConfig.baseurl) {
+      handleLLMConfigChange({
+        model: DEFAULT_MODEL,
+        baseurl: DEFAULT_BASE_URL
+      });
+    }
+  }, []);
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     let updatedValue = value;
     if (name === 'temperature') updatedValue = parseFloat(value);
     if (name === 'maxTokens') updatedValue = parseInt(value);
-    handleLLMConfigChange({ [name]: updatedValue });
+
+    // If model is changed, update the baseurl accordingly
+    if (name === 'model') {
+      const isGroqModel = GROQ_MODELS.includes(value);
+      const baseurl = isGroqModel
+        ? "https://api.groq.com/openai/v1/chat/completions"
+        : "https://api.openai.com/v1/chat/completions";
+      handleLLMConfigChange({
+        [name]: value,
+        baseurl
+      });
+    } else {
+      handleLLMConfigChange({ [name]: updatedValue });
+    }
   }, [handleLLMConfigChange]);
 
   const toggleApiKeyVisibility = () => setShowApiKey(prev => !prev);
@@ -35,21 +70,31 @@ const LLMNode = ({ selected }) => {
             onChange={handleInputChange}
             className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 bg-white"
           >
-            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-            <option value="gpt-4">GPT-4</option>
+            <optgroup label="OpenAI Models">
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="gpt-4">GPT-4</option>
+            </optgroup>
+            <optgroup label="Groq Models">
+              {GROQ_MODELS.map(model => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
 
         <div className="space-y-2">
-          <label className="font-medium text-sm text-slate-800" htmlFor="baseurl">OpenAI API Base</label>
+          <label className="font-medium text-sm text-slate-800" htmlFor="baseurl">API Base URL</label>
           <input
             id="baseurl"
             type="url"
             name="baseurl"
             value={llmConfig.baseurl || ''}
             onChange={handleInputChange}
-            placeholder="https://api.openai.com/v1/chat/completions"
+            placeholder="API endpoint will be set automatically based on model selection"
             className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
+            readOnly
           />
         </div>
 
@@ -62,7 +107,7 @@ const LLMNode = ({ selected }) => {
               name="apikey"
               value={llmConfig.apikey}
               onChange={handleInputChange}
-              placeholder="sk-..."
+              placeholder="OpenAI or Groq"
               className="w-full p-3 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-slate-600 placeholder:text-slate-400"
             />
           </div>
